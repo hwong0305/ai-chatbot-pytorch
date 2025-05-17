@@ -18,30 +18,42 @@ const ChatContainer: React.FC = () => {
     },
   ]);
 
-  const handleSendMessage = (message: string) => {
-    if (message.trim() === '') return;
+  const handleSendMessage = async (message: string) => {
+    try {
+      if (message.trim() === '') return;
 
-    // Add user message
-    setMessages(prev => [
-      ...prev,
-      {
-        text: message,
-        isBot: false,
-        timestamp: new Date(),
-      },
-    ]);
-
-    // TODO: Add actual bot response logic here
-    setTimeout(() => {
+      // Add user message
       setMessages(prev => [
         ...prev,
         {
-          text: 'I received your message. This is a placeholder response.',
+          text: message,
+          isBot: false,
+          timestamp: new Date(),
+        },
+      ]);
+
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ message }),
+      });
+
+      const response = await resp.text();
+
+      setMessages(prev => [
+        ...prev,
+        {
+          text: response.replace(/"/g, ''),
           isBot: true,
           timestamp: new Date(),
         },
       ]);
-    }, 1000);
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred. Please try again later.');
+    }
   };
 
   return (
